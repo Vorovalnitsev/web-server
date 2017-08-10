@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" serverName="https://github.com/Vorovalnitsev/web-server.git" />
+  <component name="PublishConfigData" serverName="https://github.com/Vorovalnitsev/web-server.git" uploadOnCheckin="aead5d08-e774-49f0-9b79-e2db86038a34">
+    <option name="myUploadOnCheckinName" value="https://github.com/Vorovalnitsev/web-server.git" />
+  </component>
 </project>
