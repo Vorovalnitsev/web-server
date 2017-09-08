@@ -1,53 +1,113 @@
-var http = require('http');
-//var net = require('net');
+//подключаем модули
+var express =  require('express');
+var handlebars = require('express-handlebars').create({defaultLayout: 'main'});
+var formidable = require('formidable');
+var credentials = require('./credentials');
 
-var events = require('events');
+var app = express();
 
-server = http.createServer();
+//устанавливаем механизм представлений
+app.engine('handlebars', handlebars.engine);
+app.set('view engine', 'handlebars');
+app.use(express.static(__dirname+'/public'));
+//подключаем парсер для POST запросов
+app.use(require('body-parser'). urlencoded({ extended: true }));
+//подключаем работу с cookie
+app.use(require('cookie-parser')(credentials.cookieSecret));
 
-var EventEmmiter  = events.EventEmitter;
-
-var stopEvent = new EventEmmiter();
-
-stopEvent.on('stop', onStop);
-
-function onStop(param) {
-    console.log(param);
-    server.close();
-}
-
-
-server.listen(8081);
-
-server.on('request', function (req, res) {
-    res.writeHead(200, {'Content-Type': 'text/html; charset = utf-8'});
-    res.write('<p>Привет мир!</p>');
-    res.end();
-})
+//промежуточное ПО для внедрения данных в res.locals.partials
+app.use(function(req, res, next){
+    if(!res.locals.partials) res.locals.partials = {};
+    res.locals.partials.weatherContext = getWeatherData();
+    next();
+});
 
 
-server.on('request', function (req, res) {
-    console.log('Somebody wants to see ...');
-    console.log('URL: ', req.url);
-    console.log('Method: ', req.method);
-    console.log('Status: ', res.statusCode);
-})
 
-server.on('request', function (req, res) {
-    if (req.url=='/stop'){
-        stopEvent.emit('stop', "Goodbye");
+
+//отключаем заголовок в ответе Express
+//app.disable('x-powered-by');
+
+//устанавливаем порт приложения
+app.set('port', 8080);
+
+
+
+//устанавливаем маршруты
+//главная страница
+app.get('/', function (req, res) {
+    res.status(200);
+    res.cookie('test cookie', 'test test cokie');
+    res.render('home');
+    var ip = req.ip;//req.headers['x-forwarded-for'] ||
+        //req.connection.remoteAddress ||
+        //req.socket.remoteAddress; ||
+        //req.connection.socket.remoteAddress;
+
+    console.log(ip);
+    for (var name in req.headers){
+        console.log(name+':'+req.headers[name]);
     }
-})
+});
 
-server.on('listening', function () {
-    console.log('The Server is started...');
-    console.log('The port is 8081...');
-})
 
-server.on('connection', function (req, socket, head) {
-    console.log('Somebody is connected...');
-})
+//страница О...
+app.get('/about', function (req, res) {
+    res.status(200);
+    res.render('about');
+});
 
-server.on('close', function () {
-    console.log('The Server is closed...');
-})
+app.post('/', function (req, res) {
+
+    //console.log (req.body.name);
+    var form = new formidable.IncomingForm();
+
+    form.parse(req, function (err, fields, files) {
+        if (err) return res.redirect('/');
+        console.log('Fields:');
+        console.log(fields);
+
+        console.log('Files:');
+        console.log(files);
+    })
+
+    res.redirect(303, '/');
+
+});
+//страница 404
+app.use(function (req, res) {
+   res.status(404);
+   res.render('404');
+});
+//страница 500
+app.use(function (err, req, res, next) {
+    console.error(err.stack);
+    res.status(500);
+    res.render('500');
+});
+
+function getWeatherData(){
+    return {
+        locations: [
+            {
+                name: 'Портленд',
+                forecastUrl: 'http://www.wunderground.com/US/OR/Portland.html',
+                weather: 'Сплошная облачность ',
+                temp: '54.1 F (12.3 C)',
+            },
+            {
+                name: 'Бенд',
+                forecastUrl: 'http://www.wunderground.com/US/OR/Bend.html',
+                weather: 'Малооблачно',
+                temp: '55.0 F (12.8 C)',
+            },
+        ],
+    };
+};
+
+
+app.listen(app.get('port'), function () {
+    console.log('Express is started on http://localhost:' + app.get('port') + ' press Ctrl+C for stop');
+});
+
+

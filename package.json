@@ -17,6 +17,13 @@
   },
   "homepage": "https://github.com/Vorovalnitsev/web-server#readme",
   "dependencies": {
-    "express": "^4.15.4"
+    "body-parser": "^1.17.2",
+    "bootstrap": "^3.3.7",
+    "cookie-parser": "^1.4.3",
+    "express": "^4.15.4",
+    "express-handlebars": "^3.0.0",
+    "express-session": "^1.15.5",
+    "formidable": "^1.1.1",
+    "mongoose": "^4.11.8"
   }
 }
